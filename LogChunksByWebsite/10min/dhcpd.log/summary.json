@@ -1,0 +1,12 @@
+{
+  "source_file": "dhcpd.log",
+  "chunk_count": 93,
+  "website_count": 1,
+  "websites": [
+    "tracersense"
+  ],
+  "outputs": {
+    "all_chunks": "/home/zli/AICLUB/AI-SIEM/LogChunksByWebsite/10min/dhcpd.log/all_chunks.jsonl",
+    "by_website_dir": "/home/zli/AICLUB/AI-SIEM/LogChunksByWebsite/10min/dhcpd.log/by_website"
+  }
+}

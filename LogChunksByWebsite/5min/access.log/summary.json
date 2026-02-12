@@ -1,0 +1,14 @@
+{
+  "source_file": "access.log",
+  "chunk_count": 1832,
+  "website_count": 3,
+  "websites": [
+    "10.10.11.250",
+    "suspicious_host",
+    "unknown"
+  ],
+  "outputs": {
+    "all_chunks": "/home/zli/AICLUB/AI-SIEM/LogChunksByWebsite/5min/access.log/all_chunks.jsonl",
+    "by_website_dir": "/home/zli/AICLUB/AI-SIEM/LogChunksByWebsite/5min/access.log/by_website"
+  }
+}

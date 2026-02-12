@@ -1,0 +1,12 @@
+{
+  "source_file": "modsec_audit.log-20251008",
+  "chunk_count": 2798,
+  "website_count": 1,
+  "websites": [
+    "192.168.200.72"
+  ],
+  "outputs": {
+    "all_chunks": "/home/zli/AICLUB/AI-SIEM/LogChunksByWebsite/2min/modsec_audit.log-20251008/all_chunks.jsonl",
+    "by_website_dir": "/home/zli/AICLUB/AI-SIEM/LogChunksByWebsite/2min/modsec_audit.log-20251008/by_website"
+  }
+}
