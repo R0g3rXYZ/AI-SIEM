@@ -1,6 +1,17 @@
 # AI-Augmented SIEM Security: Adversarial Log Injection and RAG Robustness
 
-## Overview
+## How to Run
+
+To run this model you can simply do:
+
+    conda env create -f environment.yml
+    conda activate rag_faiss
+    python rag_query.py
+
+
+
+
+## Project Overview
 
 Modern Security Information and Event Management (SIEM) platforms increasingly integrate Large Language Models (LLMs) to assist analysts with log triage, threat interpretation, and response planning. Retrieval-Augmented Generation (RAG) enables these systems to contextualize alerts using historical logs, threat intelligence, and playbooks.
 

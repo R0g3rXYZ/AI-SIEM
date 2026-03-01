@@ -99,4 +99,3 @@ dependencies:
       - typer==0.24.1
       - typer-slim==0.24.0
       - typing-extensions==4.15.0
-prefix: /home/clovis/miniconda3/envs/rag_faiss
