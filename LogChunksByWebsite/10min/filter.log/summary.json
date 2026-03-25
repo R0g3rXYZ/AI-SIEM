@@ -1,0 +1,12 @@
+{
+  "source_file": "filter.log",
+  "chunk_count": 47,
+  "website_count": 1,
+  "websites": [
+    "tracersense"
+  ],
+  "outputs": {
+    "all_chunks": "/home/zli/AICLUB/AI-SIEM/LogChunksByWebsite/10min/filter.log/all_chunks.jsonl",
+    "by_website_dir": "/home/zli/AICLUB/AI-SIEM/LogChunksByWebsite/10min/filter.log/by_website"
+  }
+}

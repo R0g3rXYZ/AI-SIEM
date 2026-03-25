@@ -1,0 +1,10 @@
+{
+  "source_file": "modsec_audit.log-20260203:Zone.Identifier",
+  "chunk_count": 0,
+  "website_count": 0,
+  "websites": [],
+  "outputs": {
+    "all_chunks": "/home/zli/AICLUB/AI-SIEM/LogChunksByWebsite/5min/modsec_audit.log-20260203:Zone.Identifier/all_chunks.jsonl",
+    "by_website_dir": "/home/zli/AICLUB/AI-SIEM/LogChunksByWebsite/5min/modsec_audit.log-20260203:Zone.Identifier/by_website"
+  }
+}

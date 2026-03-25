@@ -1,0 +1,17 @@
+{
+  "source_file": "error.log-20260209",
+  "chunk_count": 87,
+  "website_count": 6,
+  "websites": [
+    "192.168.200.72",
+    "ctfd.tf11.cybersecurity.nmt.edu",
+    "cybervolunteer.cyberreadynm.org",
+    "rancher.cybersecurity.nmt.edu",
+    "unknown",
+    "wiki.cybersecurity.nmt.edu"
+  ],
+  "outputs": {
+    "all_chunks": "/home/zli/AICLUB/AI-SIEM/LogChunksByWebsite/10min/error.log-20260209/all_chunks.jsonl",
+    "by_website_dir": "/home/zli/AICLUB/AI-SIEM/LogChunksByWebsite/10min/error.log-20260209/by_website"
+  }
+}
