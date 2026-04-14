@@ -4,6 +4,8 @@ from typing import List, Dict, Any, Optional
 from dateutil import parser as dtparser
 from datetime import datetime, timedelta
 
+_DEFAULT_STORE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "Logs", "rag_store")
+
 import numpy as np
 import faiss
 from sentence_transformers import SentenceTransformer
@@ -158,7 +160,7 @@ class QwenAnswerer:
 class RAGEngine:
     def __init__(
         self,
-        store_dir: str = "rag_store",
+        store_dir: str = _DEFAULT_STORE,
         embed_model: str = "sentence-transformers/all-MiniLM-L6-v2",
         llm_name: str = "Qwen/Qwen2.5-0.5B-Instruct",
     ):
@@ -324,7 +326,7 @@ class RAGEngine:
         return self.llm.generate(system, user, max_new_tokens=450)
 
     # ---------- Workflows ----------
-    def workflow_most_severe_on_day(self, day_query: str) -> Dict[str, Any]:
+    def workflow_most_severe_on_day(self, day_query: str, attack_type_filter: str = None) -> Dict[str, Any]:
         day = parse_day_from_query(day_query)
         if not day:
             return {"error": "Could not parse day from query."}
@@ -336,6 +338,11 @@ class RAGEngine:
         )
         if not candidates:
             return {"error": f"No chunks found on {day.strftime('%Y-%m-%d')}"}
+
+        if attack_type_filter:
+            filtered = [r for r in candidates if self.classify_attack_type(r.doc) == attack_type_filter]
+            if filtered:
+                candidates = filtered
 
         best = self.pick_most_severe(candidates)
         atype = self.classify_attack_type(best.doc)
@@ -359,7 +366,7 @@ class RAGEngine:
         return {"day": day.strftime("%Y-%m-%d"), "attack_type": attack_type, "count": counts, "chunks_seen": seen   }
 
 
-    def workflow_most_severe_for_ip(self, ip: str, k: int = 200) -> Dict[str, Any]:
+    def workflow_most_severe_for_ip(self, ip: str, k: int = 200, attack_type_filter: str = None) -> Dict[str, Any]:
         # Exact IP filter (avoid semantic false positives).
         candidates = [Retrieved(score=1.0, doc=d) for d in self.docs if self._doc_has_ip(d, ip)]
         if not candidates:
@@ -368,6 +375,11 @@ class RAGEngine:
             candidates = [r for r in retrieved if self._doc_has_ip(r.doc, ip)]
         if not candidates:
             return {"error": f"No chunks found for IP {ip}"}
+
+        if attack_type_filter:
+            filtered = [r for r in candidates if self.classify_attack_type(r.doc) == attack_type_filter]
+            if filtered:
+                candidates = filtered
 
         best = self.pick_most_severe(candidates)
         atype = self.classify_attack_type(best.doc)

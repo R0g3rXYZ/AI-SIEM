@@ -9,7 +9,25 @@ from rag_query import RAGEngine
 
 
 DEFAULT_IP = "202.93.142.22"
+DEFAULT_DATE = "2026-02-09"
 DEFAULT_QUESTION = "What type of attack is this and how was it handled by the server?"
+
+SEARCH_MODES = ["By Source IP", "By Date"]
+
+ATTACK_TYPES = [
+    "Any",
+    "scanner/probing",
+    "sql_injection",
+    "xss",
+    "rce_attempt",
+    "path_traversal",
+    "http_header_injection",
+    "protocol_smuggling_or_crlf",
+    "auth_bypass_attempt",
+    "auth_bruteforce_or_guessing",
+    "cms_probe",
+    "unknown",
+]
 
 
 class SimpleRAGUI:
@@ -22,14 +40,27 @@ class SimpleRAGUI:
         self.engine = None
         self.is_running = False
 
-        self.ip_var = tk.StringVar(value=DEFAULT_IP)
+        self.mode_var = tk.StringVar(value=SEARCH_MODES[0])
+        self.input_var = tk.StringVar(value=DEFAULT_IP)
+        self.type_filter_var = tk.StringVar(value=ATTACK_TYPES[0])
         self.include_baseline_var = tk.BooleanVar(value=True)
         self.include_raw_var = tk.BooleanVar(value=False)
         self.status_var = tk.StringVar(value="Ready")
 
         self._build()
+        self.mode_var.trace_add("write", self._on_mode_change)
+
+    def _on_mode_change(self, *_):
+        mode = self.mode_var.get()
+        if mode == "By Source IP":
+            self.input_label.configure(text="Source IP")
+            self.input_var.set(DEFAULT_IP)
+        else:
+            self.input_label.configure(text="Date (YYYY-MM-DD or 'March 15')")
+            self.input_var.set(DEFAULT_DATE)
 
     def _build(self) -> None:
+        # --- Header ---
         header = tk.Frame(self.root, bg="#1f3a5f", padx=18, pady=18)
         header.pack(fill="x", padx=16, pady=(16, 10))
 
@@ -43,12 +74,13 @@ class SimpleRAGUI:
 
         tk.Label(
             header,
-            text="Review the most severe finding for a source IP and inspect the generated triage summary.",
+            text="Review the most severe finding for a source IP or date and inspect the generated triage summary.",
             font=("Segoe UI", 10),
             fg="#d8e4f1",
             bg="#1f3a5f",
         ).pack(anchor="w", pady=(6, 0))
 
+        # --- Controls ---
         controls = tk.Frame(self.root, bg="#fffaf2", bd=1, relief="solid", padx=16, pady=14)
         controls.pack(fill="x", padx=16)
 
@@ -58,12 +90,43 @@ class SimpleRAGUI:
             font=("Segoe UI", 12, "bold"),
             fg="#243b53",
             bg="#fffaf2",
-        ).grid(row=0, column=0, sticky="w", pady=(0, 10))
+        ).grid(row=0, column=0, columnspan=2, sticky="w", pady=(0, 10))
 
-        tk.Label(controls, text="Source IP", fg="#486581", bg="#fffaf2").grid(row=1, column=0, sticky="w")
-        self.ip_entry = tk.Entry(
+        # Row 1: column labels
+        tk.Label(controls, text="Search Mode", fg="#486581", bg="#fffaf2").grid(
+            row=1, column=0, sticky="w"
+        )
+        tk.Label(controls, text="Attack Type Filter", fg="#486581", bg="#fffaf2").grid(
+            row=1, column=1, sticky="w", padx=(12, 0)
+        )
+
+        # Row 2: dropdowns side by side
+        mode_menu = tk.OptionMenu(controls, self.mode_var, *SEARCH_MODES)
+        mode_menu.configure(
+            bg="#ffffff", fg="#102a43", relief="flat",
+            highlightthickness=1, highlightbackground="#bcccdc",
+            activebackground="#e9eef5", font=("Segoe UI", 10),
+        )
+        mode_menu["menu"].configure(bg="#ffffff", fg="#102a43", font=("Segoe UI", 10))
+        mode_menu.grid(row=2, column=0, sticky="ew", pady=(4, 10))
+
+        type_menu = tk.OptionMenu(controls, self.type_filter_var, *ATTACK_TYPES)
+        type_menu.configure(
+            bg="#ffffff", fg="#102a43", relief="flat",
+            highlightthickness=1, highlightbackground="#bcccdc",
+            activebackground="#e9eef5", font=("Segoe UI", 10),
+        )
+        type_menu["menu"].configure(bg="#ffffff", fg="#102a43", font=("Segoe UI", 10))
+        type_menu.grid(row=2, column=1, sticky="ew", padx=(12, 0), pady=(4, 10))
+
+        # Row 3: dynamic input label
+        self.input_label = tk.Label(controls, text="Source IP", fg="#486581", bg="#fffaf2")
+        self.input_label.grid(row=3, column=0, columnspan=2, sticky="w")
+
+        # Row 4: input entry
+        self.input_entry = tk.Entry(
             controls,
-            textvariable=self.ip_var,
+            textvariable=self.input_var,
             width=24,
             bg="#ffffff",
             fg="#102a43",
@@ -71,11 +134,13 @@ class SimpleRAGUI:
             highlightthickness=1,
             highlightbackground="#bcccdc",
             highlightcolor="#d64545",
+            font=("Segoe UI", 10),
         )
-        self.ip_entry.grid(row=2, column=0, sticky="ew", padx=(0, 12), pady=(4, 12))
+        self.input_entry.grid(row=4, column=0, columnspan=2, sticky="ew", pady=(4, 12))
 
+        # Row 5: checkboxes
         options = tk.Frame(controls, bg="#fffaf2")
-        options.grid(row=3, column=0, columnspan=2, sticky="w")
+        options.grid(row=5, column=0, columnspan=2, sticky="w")
 
         self.baseline_check = tk.Checkbutton(
             options,
@@ -99,8 +164,9 @@ class SimpleRAGUI:
         )
         self.raw_check.pack(side="left")
 
+        # Row 6: buttons
         actions = tk.Frame(controls, bg="#fffaf2")
-        actions.grid(row=4, column=0, columnspan=2, sticky="w", pady=(14, 0))
+        actions.grid(row=6, column=0, columnspan=2, sticky="w", pady=(14, 0))
 
         self.run_button = tk.Button(
             actions,
@@ -133,8 +199,9 @@ class SimpleRAGUI:
         self.clear_button.pack(side="left", padx=(10, 0))
 
         controls.grid_columnconfigure(0, weight=1)
-        controls.grid_columnconfigure(1, weight=3)
+        controls.grid_columnconfigure(1, weight=1)
 
+        # --- Status ---
         status_frame = tk.Frame(self.root, bg="#f4efe7", padx=18, pady=10)
         status_frame.pack(fill="x")
 
@@ -147,6 +214,7 @@ class SimpleRAGUI:
             bg="#f4efe7",
         ).pack(fill="x")
 
+        # --- Results ---
         results = tk.Frame(self.root, bg="#ffffff", bd=1, relief="solid", padx=6, pady=6)
         results.pack(fill="both", expand=True, padx=16, pady=(0, 16))
 
@@ -174,7 +242,9 @@ class SimpleRAGUI:
     def clear_output(self) -> None:
         if self.is_running:
             return
-        self.ip_var.set(DEFAULT_IP)
+        self.mode_var.set(SEARCH_MODES[0])
+        self.input_var.set(DEFAULT_IP)
+        self.type_filter_var.set(ATTACK_TYPES[0])
         self.include_baseline_var.set(True)
         self.include_raw_var.set(False)
         self.set_output("")
@@ -185,7 +255,7 @@ class SimpleRAGUI:
         state = "disabled" if running else "normal"
         self.run_button.configure(state=state)
         self.clear_button.configure(state=state)
-        self.ip_entry.configure(state=state)
+        self.input_entry.configure(state=state)
         self.baseline_check.configure(state=state)
         self.raw_check.configure(state=state)
         self.status_var.set(status)
@@ -199,24 +269,39 @@ class SimpleRAGUI:
         if self.is_running:
             return
 
-        ip = self.ip_var.get().strip() or DEFAULT_IP
-        question = DEFAULT_QUESTION
+        mode = self.mode_var.get()
+        input_val = self.input_var.get().strip()
+        if not input_val:
+            input_val = DEFAULT_IP if mode == "By Source IP" else DEFAULT_DATE
+
+        type_filter = self.type_filter_var.get()
+        if type_filter == "Any":
+            type_filter = None
+
         include_baseline = self.include_baseline_var.get()
         include_raw = self.include_raw_var.get()
+
         self.set_running(True, "Loading models and querying logs...")
         self.set_output("")
 
         worker = threading.Thread(
             target=self._run_query_worker,
-            args=(ip, question, include_baseline, include_raw),
+            args=(mode, input_val, DEFAULT_QUESTION, include_baseline, include_raw, type_filter),
             daemon=True,
         )
         worker.start()
 
-    def _run_query_worker(self, ip: str, question: str, include_baseline: bool, include_raw: bool) -> None:
+    def _run_query_worker(
+        self, mode: str, input_val: str, question: str,
+        include_baseline: bool, include_raw: bool, type_filter
+    ) -> None:
         try:
             engine = self._get_engine()
-            result = engine.workflow_most_severe_for_ip(ip)
+
+            if mode == "By Source IP":
+                result = engine.workflow_most_severe_for_ip(input_val, attack_type_filter=type_filter)
+            else:
+                result = engine.workflow_most_severe_on_day(input_val, attack_type_filter=type_filter)
 
             if "error" in result:
                 self.root.after(0, lambda: self._finish_with_text(result["error"]))
@@ -238,7 +323,7 @@ class SimpleRAGUI:
                     day_stats = None
                 baseline = engine.workflow_commonness(result["attack_type"])
 
-            output = self._format_result(result, explanation, day_stats, baseline, include_raw)
+            output = self._format_result(result, mode, explanation, day_stats, baseline, include_raw)
             self.root.after(0, lambda: self._finish_with_text(output))
         except Exception as exc:
             error_text = f"{exc}\n\n{traceback.format_exc()}"
@@ -287,13 +372,21 @@ class SimpleRAGUI:
             else:
                 self.output.insert("end", line + "\n", ("body",))
 
-    def _format_result(self, result, explanation: str, day_stats, baseline, include_raw: bool) -> str:
+    def _format_result(
+        self, result, mode: str, explanation: str, day_stats, baseline, include_raw: bool
+    ) -> str:
         best = result["best_chunk"]
+
+        if mode == "By Source IP":
+            primary_line = f"IP: {result.get('ip', '')}"
+        else:
+            primary_line = f"Date: {result.get('day', '')}"
+
         lines = [
             "# Most Severe Finding",
             "",
             "## Overview",
-            f"IP: {result.get('ip', '')}",
+            primary_line,
             f"Chunk ID: {result.get('best_chunk_id', '')}",
             f"Attack Type: {result.get('attack_type', '')}",
             f"Candidate Count: {result.get('candidate_count', 0)}",
@@ -314,49 +407,41 @@ class SimpleRAGUI:
         else:
             lines.append("No paths found.")
 
-        lines.extend(
-            [
-                "",
-                "## Explanation",
-                explanation.strip(),
-            ]
-        )
+        lines.extend([
+            "",
+            "## Explanation",
+            explanation.strip(),
+        ])
 
         if day_stats:
-            lines.extend(
-                [
-                    "",
-                    "## Same-Day Count",
-                    f"Day: {day_stats.get('day', '')}",
-                    f"Attack Type Count: {day_stats.get('count', 0)}",
-                    f"Chunks Seen That Day: {day_stats.get('chunks_seen', 0)}",
-                ]
-            )
+            lines.extend([
+                "",
+                "## Same-Day Count",
+                f"Day: {day_stats.get('day', '')}",
+                f"Attack Type Count: {day_stats.get('count', 0)}",
+                f"Chunks Seen That Day: {day_stats.get('chunks_seen', 0)}",
+            ])
 
         if baseline and "note" not in baseline:
-            lines.extend(
-                [
-                    "",
-                    "## Baseline",
-                    f"Days Observed: {baseline.get('days_observed', 0)}",
-                    f"Average Per Day: {baseline.get('average_per_day', 0):.2f}",
-                    f"Peak Day: {baseline.get('max_day', '')}",
-                    f"Peak Day Count: {baseline.get('max_count', 0)}",
-                ]
-            )
+            lines.extend([
+                "",
+                "## Baseline",
+                f"Days Observed: {baseline.get('days_observed', 0)}",
+                f"Average Per Day: {baseline.get('average_per_day', 0):.2f}",
+                f"Peak Day: {baseline.get('max_day', '')}",
+                f"Peak Day Count: {baseline.get('max_count', 0)}",
+            ])
         elif baseline and baseline.get("note"):
             lines.extend(["", "## Baseline", baseline["note"]])
 
         if include_raw:
             raw_text = (best.get("text", "") or "").strip()
             preview = raw_text[:1200] if raw_text else "No raw text found."
-            lines.extend(
-                [
-                    "",
-                    "## Raw Log Preview",
-                    f"    {preview}",
-                ]
-            )
+            lines.extend([
+                "",
+                "## Raw Log Preview",
+                f"    {preview}",
+            ])
 
         return "\n".join(lines)
 
