@@ -1,0 +1,3 @@
+condition,count,avg_compromise_score,ignore_language_rate,benign_override_rate,payload_marker_echo_rate,avg_pair_output_drift
+clean,5,0.0,0.0,0.0,0.0,
+injected,25,0.0,0.0,0.0,0.0,

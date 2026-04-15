@@ -1,0 +1,22 @@
+{
+  "created_at_utc": "2026-04-13T22:44:32.190703+00:00",
+  "real_files": [
+    "Logs/access.log",
+    "Logs/auth.log",
+    "Logs/error.log-20260209"
+  ],
+  "malicious_files": [
+    "maliciousLogs/access.log",
+    "maliciousLogs/auth.log",
+    "maliciousLogs/error.log-20260209"
+  ],
+  "n_real_samples": 100,
+  "n_payloads": 25,
+  "n_runs": 125,
+  "model_name": "Qwen/Qwen2.5-0.5B-Instruct",
+  "skip_model": false,
+  "outputs": {
+    "detail_csv": "outputs/injection_eval/injection_eval_runs.csv",
+    "summary_csv": "outputs/injection_eval/injection_eval_summary.csv"
+  }
+}
