@@ -250,6 +250,75 @@ class RAGEngine:
 
         return short[0]
 
+    def workflow_top_offenders_on_day(
+    self,
+    day_query: str,
+    top_n: int = 10,
+    min_chunks: int = 1
+    ) -> Dict[str, Any]:
+        """
+        "Which source IPs were most active/aggressive on a given day?"
+
+        For each unique IP seen on the target day, computes:
+        - chunk_count       : how many log chunks involve this IP
+        - total_severity    : summed heuristic severity across all its chunks
+        - attack_types      : set of classified attack types
+        - most_severe_chunk : the single highest-severity chunk for this IP
+
+        Returns the top_n IPs ranked by total_severity descending.
+        """
+        day = parse_day_from_query(day_query)
+        if not day:
+            return {"error": "Could not parse day from query."}
+
+        day_str = day.strftime("%Y-%m-%d")
+
+        # Collect all chunks from that day and bucket by IP
+        ip_buckets: Dict[str, List[DocDict]] = {}
+        for doc in self.docs:
+            if not in_day(doc.get("time_start", ""), day):
+                continue
+            ips = [normalize_ip(x) for x in (doc.get("client_ips", []) or [])]
+            meta_ip = normalize_ip((doc.get("meta", {}) or {}).get("src_ip", ""))
+            if meta_ip and meta_ip not in ips:
+                ips.append(meta_ip)
+            for ip in ips:
+                if ip:
+                    ip_buckets.setdefault(ip, []).append(doc)
+
+        if not ip_buckets:
+            return {"error": f"No IP data found for {day_str}"}
+
+        # Score every IP
+        results = []
+        for ip, docs in ip_buckets.items():
+            if len(docs) < min_chunks:
+                continue
+
+            chunk_severities = [
+                (heuristic_severity(d.get("meta", d)), d) for d in docs
+            ]
+            total_severity = sum(s for s, _ in chunk_severities)
+            best_doc = max(chunk_severities, key=lambda x: x[0])[1]
+            attack_types = list({self.classify_attack_type(d) for d in docs})
+
+            results.append({
+                "ip": ip,
+                "chunk_count": len(docs),
+                "total_severity": round(total_severity, 2),
+                "attack_types": attack_types,
+                "most_severe_chunk_id": best_doc.get("chunk_id"),
+                "most_severe_summary": best_doc.get("summary", ""),
+            })
+
+        results.sort(key=lambda x: x["total_severity"], reverse=True)
+
+        return {
+            "day": day_str,
+            "unique_ips_seen": len(ip_buckets),
+            "top_offenders": results[:top_n],
+        }
+
     def classify_attack_type(self, doc: DocDict) -> str:
         if doc.get("attack_type"):
             return str(doc.get("attack_type"))

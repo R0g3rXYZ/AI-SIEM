@@ -6,7 +6,7 @@
     "192.168.200.72"
   ],
   "outputs": {
-    "all_chunks": "/home/zli/AICLUB/AI-SIEM/LogChunksByWebsite/2min/modsec_audit.log-20260203/all_chunks.jsonl",
-    "by_website_dir": "/home/zli/AICLUB/AI-SIEM/LogChunksByWebsite/2min/modsec_audit.log-20260203/by_website"
+    "all_chunks": "C:\\Users\\Jaxen\\Desktop\\cse5089\\AI-SIEM\\LogChunksByWebsite\\2min\\modsec_audit.log-20260203\\all_chunks.jsonl",
+    "by_website_dir": "C:\\Users\\Jaxen\\Desktop\\cse5089\\AI-SIEM\\LogChunksByWebsite\\2min\\modsec_audit.log-20260203\\by_website"
   }
 }

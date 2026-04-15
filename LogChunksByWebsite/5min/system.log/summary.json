@@ -6,7 +6,7 @@
     "tracersense"
   ],
   "outputs": {
-    "all_chunks": "/home/zli/AICLUB/AI-SIEM/LogChunksByWebsite/5min/system.log/all_chunks.jsonl",
-    "by_website_dir": "/home/zli/AICLUB/AI-SIEM/LogChunksByWebsite/5min/system.log/by_website"
+    "all_chunks": "C:\\Users\\Jaxen\\Desktop\\cse5089\\AI-SIEM\\LogChunksByWebsite\\5min\\system.log\\all_chunks.jsonl",
+    "by_website_dir": "C:\\Users\\Jaxen\\Desktop\\cse5089\\AI-SIEM\\LogChunksByWebsite\\5min\\system.log\\by_website"
   }
 }
