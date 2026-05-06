@@ -14,6 +14,7 @@ from transformers import AutoTokenizer, AutoModelForCausalLM
 
 # ---------------- Types ----------------
 DocDict = Dict[str, Any]
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
 @dataclass
@@ -123,12 +124,13 @@ def heuristic_severity(doc_meta: Dict[str, Any]) -> float:
 # ---------- LLM wrapper ----------
 class QwenAnswerer:
     def __init__(self, model_name: str = "Qwen/Qwen2.5-0.5B-Instruct"):
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.tokenizer = AutoTokenizer.from_pretrained(model_name, use_fast=True)
         self.model = AutoModelForCausalLM.from_pretrained(
             model_name,
-            torch_dtype=torch.float16 if torch.cuda.is_available() else torch.float32,
-            device_map="auto",
+            dtype=torch.float16 if torch.cuda.is_available() else torch.float32,
         )
+        self.model.to(self.device)
 
     def generate(self, system: str, user: str, max_new_tokens: int = 400) -> str:
         messages = [
@@ -138,7 +140,7 @@ class QwenAnswerer:
         prompt = self.tokenizer.apply_chat_template(
             messages, tokenize=False, add_generation_prompt=True
         )
-        inputs = self.tokenizer(prompt, return_tensors="pt").to(self.model.device)
+        inputs = self.tokenizer(prompt, return_tensors="pt").to(self.device)
         out = self.model.generate(
             **inputs,
             max_new_tokens=max_new_tokens,
@@ -158,7 +160,7 @@ class QwenAnswerer:
 class RAGEngine:
     def __init__(
         self,
-        store_dir: str = "rag_store",
+        store_dir: str = os.path.join(BASE_DIR, "rag_store"),
         embed_model: str = "sentence-transformers/all-MiniLM-L6-v2",
         llm_name: str = "Qwen/Qwen2.5-0.5B-Instruct",
     ):
